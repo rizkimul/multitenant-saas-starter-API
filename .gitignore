@@ -13,3 +13,5 @@ htmlcov/
 .coverage
 venv
 .DS_Store
+.python-version
+CLAUDE.md
