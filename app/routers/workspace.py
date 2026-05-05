@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser
 from app.core.db import get_db
+from app.core.permissions import WorkspaceAdminCtx, WorkspaceMemberCtx, WorkspaceOwnerCtx
 from app.repositories.user import UserRepository
 from app.repositories.workspace import WorkspaceRepository
 from app.schemas.workspace import (
@@ -59,14 +60,12 @@ async def list_workspaces(
 
 
 @router.get("/{slug}", response_model=WorkspaceDetailResponse)
-async def get_workspace(
-    slug: str,
-    service: WorkspaceServiceDep,
-    current_user: CurrentUser,
-) -> WorkspaceDetailResponse:
-    """Get workspace details including the full member list."""
-    workspace = await service.get_workspace(slug, requesting_user_id=current_user.id)
-    return WorkspaceDetailResponse.model_validate(workspace)
+async def get_workspace(ctx: WorkspaceMemberCtx) -> WorkspaceDetailResponse:
+    """Get workspace details including the full member list.
+
+    Requires: member, admin, or owner role.
+    """
+    return WorkspaceDetailResponse.model_validate(ctx.workspace)
 
 
 @router.post(
@@ -75,13 +74,17 @@ async def get_workspace(
     status_code=status.HTTP_201_CREATED,
 )
 async def invite_member(
-    slug: str,
     data: MemberInvite,
+    ctx: WorkspaceAdminCtx,
     service: WorkspaceServiceDep,
-    current_user: CurrentUser,
 ) -> WorkspaceMemberResponse:
-    """Add a user to the workspace. Requires admin or owner role."""
-    member = await service.invite_member(slug, data, actor_id=current_user.id)
+    """Add a user to the workspace.
+
+    Requires: admin or owner role.
+    """
+    member = await service.invite_member(
+        ctx.workspace.slug, data, actor_id=ctx.user.id
+    )
     return WorkspaceMemberResponse.model_validate(member)
 
 
@@ -90,15 +93,17 @@ async def invite_member(
     response_model=WorkspaceMemberResponse,
 )
 async def update_member_role(
-    slug: str,
     user_id: uuid.UUID,
     data: MemberRoleUpdate,
+    ctx: WorkspaceOwnerCtx,
     service: WorkspaceServiceDep,
-    current_user: CurrentUser,
 ) -> WorkspaceMemberResponse:
-    """Change a member's role. Requires owner role."""
+    """Change a member's role.
+
+    Requires: owner role.
+    """
     member = await service.update_member_role(
-        slug, target_user_id=user_id, data=data, actor_id=current_user.id
+        ctx.workspace.slug, target_user_id=user_id, data=data, actor_id=ctx.user.id
     )
     return WorkspaceMemberResponse.model_validate(member)
 
@@ -108,10 +113,14 @@ async def update_member_role(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def remove_member(
-    slug: str,
     user_id: uuid.UUID,
+    ctx: WorkspaceMemberCtx,
     service: WorkspaceServiceDep,
-    current_user: CurrentUser,
 ) -> None:
-    """Remove a member from the workspace. Members can remove themselves."""
-    await service.remove_member(slug, target_user_id=user_id, actor_id=current_user.id)
+    """Remove a member from the workspace.
+
+    Requires: member role (members can remove themselves), admin or owner to remove others.
+    """
+    await service.remove_member(
+        ctx.workspace.slug, target_user_id=user_id, actor_id=ctx.user.id
+    )
