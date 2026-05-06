@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -29,8 +29,8 @@ def make_subscription(
     sub.status = status
     sub.current_period_end = None
     sub.cancel_at_period_end = False
-    sub.created_at = datetime.now(timezone.utc)
-    sub.updated_at = datetime.now(timezone.utc)
+    sub.created_at = datetime.now(UTC)
+    sub.updated_at = datetime.now(UTC)
     return sub
 
 
@@ -151,7 +151,9 @@ class TestCreateCheckoutSession:
         fake_session = MagicMock()
         fake_session.url = "https://checkout.stripe.com/pay/cs_test"
 
-        with patch("stripe.checkout.Session.create", return_value=fake_session) as mock_create:
+        with patch(
+            "stripe.checkout.Session.create", return_value=fake_session
+        ) as mock_create:
             await service.create_checkout_session(
                 workspace_id=WORKSPACE_ID,
                 success_url="https://example.com/success",
@@ -252,7 +254,7 @@ class TestSyncSubscription:
         assert call_kwargs.kwargs["stripe_price_id"] == PRICE_ID
         assert call_kwargs.kwargs["cancel_at_period_end"] is True
         assert call_kwargs.kwargs["current_period_end"] == datetime.fromtimestamp(
-            1_800_000_000, tz=timezone.utc
+            1_800_000_000, tz=UTC
         )
 
     async def test_unknown_stripe_status_falls_back_to_incomplete(

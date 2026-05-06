@@ -36,7 +36,8 @@ class TestGetCurrentUser:
         user_id = uuid.uuid4()
         mock_user = MagicMock(spec=User, is_active=True)
 
-        with patch("app.core.auth.jwt.decode", return_value=make_valid_payload(user_id)):
+        payload = make_valid_payload(user_id)
+        with patch("app.core.auth.jwt.decode", return_value=payload):
             result = await get_current_user(
                 credentials=make_credentials(),
                 session=make_session(mock_user),
@@ -77,7 +78,8 @@ class TestGetCurrentUser:
     async def test_raises_when_user_not_found(self, mock_settings) -> None:
         user_id = uuid.uuid4()
 
-        with patch("app.core.auth.jwt.decode", return_value=make_valid_payload(user_id)):
+        payload = make_valid_payload(user_id)
+        with patch("app.core.auth.jwt.decode", return_value=payload):
             with pytest.raises(UnauthorizedError, match="not found or inactive"):
                 await get_current_user(
                     credentials=make_credentials(),
@@ -88,7 +90,8 @@ class TestGetCurrentUser:
         user_id = uuid.uuid4()
         inactive_user = MagicMock(spec=User, is_active=False)
 
-        with patch("app.core.auth.jwt.decode", return_value=make_valid_payload(user_id)):
+        payload = make_valid_payload(user_id)
+        with patch("app.core.auth.jwt.decode", return_value=payload):
             with pytest.raises(UnauthorizedError, match="not found or inactive"):
                 await get_current_user(
                     credentials=make_credentials(),

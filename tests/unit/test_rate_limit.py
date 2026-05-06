@@ -78,8 +78,12 @@ class TestWorkspaceRateLimit:
         with patch("app.core.rate_limit.time") as mock_time:
             mock_time.time.return_value = 1_000_000.0
 
-            await _workspace_rate_limit(slug="workspace-a", redis=redis_a, settings=settings)
-            await _workspace_rate_limit(slug="workspace-b", redis=redis_b, settings=settings)
+            await _workspace_rate_limit(
+                slug="workspace-a", redis=redis_a, settings=settings
+            )
+            await _workspace_rate_limit(
+                slug="workspace-b", redis=redis_b, settings=settings
+            )
 
         key_a: str = redis_a.incr.call_args.args[0]
         key_b: str = redis_b.incr.call_args.args[0]

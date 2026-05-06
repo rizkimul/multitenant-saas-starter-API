@@ -1,20 +1,22 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.core.exceptions import ForbiddenError, NotFoundError
-from app.core.permissions import WorkspaceContext, get_workspace_context, _require_role
+from app.core.permissions import WorkspaceContext, _require_role, get_workspace_context
 from app.models.workspace import Workspace, WorkspaceMember, WorkspaceRole
 
 
-def make_member(workspace_id: uuid.UUID, user_id: uuid.UUID, role: WorkspaceRole) -> MagicMock:
+def make_member(
+    workspace_id: uuid.UUID, user_id: uuid.UUID, role: WorkspaceRole
+) -> MagicMock:
     m = MagicMock(spec=WorkspaceMember)
     m.workspace_id = workspace_id
     m.user_id = user_id
     m.role = role
-    m.created_at = datetime.now(timezone.utc)
+    m.created_at = datetime.now(UTC)
     return m
 
 
@@ -35,7 +37,9 @@ OUTSIDER_ID = uuid.uuid4()
 
 class TestGetWorkspaceContext:
     async def test_returns_context_for_member(self) -> None:
-        workspace = make_workspace({OWNER_ID: WorkspaceRole.owner, MEMBER_ID: WorkspaceRole.member})
+        workspace = make_workspace(
+            {OWNER_ID: WorkspaceRole.owner, MEMBER_ID: WorkspaceRole.member}
+        )
         mock_user = MagicMock(id=MEMBER_ID)
         mock_repo = AsyncMock()
         mock_repo.get_with_members.return_value = workspace

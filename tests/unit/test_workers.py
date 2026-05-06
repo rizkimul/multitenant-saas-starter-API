@@ -1,14 +1,16 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.models.subscription import SubscriptionStatus
 from app.models.workspace import WorkspaceRole
-from app.workers.tasks.email import send_subscription_confirmed_email, send_welcome_email
+from app.workers.tasks.email import (
+    send_subscription_confirmed_email,
+    send_welcome_email,
+)
 from app.workers.tasks.report import _build_report
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -44,7 +46,9 @@ class TestSendWelcomeEmail:
         user_id = str(uuid.uuid4())
 
         with patch("app.workers.tasks.email._send") as mock_send:
-            result = send_welcome_email.run(user_id=user_id, email="user@example.com", name="Alice")
+            result = send_welcome_email.run(
+                user_id=user_id, email="user@example.com", name="Alice"
+            )
 
         mock_send.assert_called_once_with(
             to="user@example.com",
@@ -55,8 +59,12 @@ class TestSendWelcomeEmail:
         assert result["user_id"] == user_id
 
     def test_retries_on_exception(self) -> None:
-        with patch("app.workers.tasks.email._send", side_effect=RuntimeError("smtp down")):
-            with patch.object(send_welcome_email, "retry", side_effect=Exception("retry called")):
+        with patch(
+            "app.workers.tasks.email._send", side_effect=RuntimeError("smtp down")
+        ):
+            with patch.object(
+                send_welcome_email, "retry", side_effect=Exception("retry called")
+            ):
                 with pytest.raises(Exception, match="retry called"):
                     send_welcome_email.run(
                         user_id=str(uuid.uuid4()),
@@ -88,8 +96,14 @@ class TestSendSubscriptionConfirmedEmail:
         assert result["workspace_id"] == workspace_id
 
     def test_retries_on_exception(self) -> None:
-        with patch("app.workers.tasks.email._send", side_effect=RuntimeError("timeout")):
-            with patch.object(send_subscription_confirmed_email, "retry", side_effect=Exception("retry called")):
+        with patch(
+            "app.workers.tasks.email._send", side_effect=RuntimeError("timeout")
+        ):
+            with patch.object(
+                send_subscription_confirmed_email,
+                "retry",
+                side_effect=Exception("retry called"),
+            ):
                 with pytest.raises(Exception, match="retry called"):
                     send_subscription_confirmed_email.run(
                         workspace_id=str(uuid.uuid4()),
@@ -146,7 +160,7 @@ class TestBuildReport:
     async def test_includes_subscription_fields(self) -> None:
         workspace_id = uuid.uuid4()
         workspace = make_workspace_mock(workspace_id)
-        period_end = datetime(2026, 12, 31, tzinfo=timezone.utc)
+        period_end = datetime(2026, 12, 31, tzinfo=UTC)
         sub = make_subscription_mock(
             status=SubscriptionStatus.active,
             period_end=period_end,

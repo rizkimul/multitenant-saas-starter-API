@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -10,7 +10,6 @@ from app.models.workspace import Workspace, WorkspaceMember, WorkspaceRole
 from app.repositories.subscription import SubscriptionRepository
 from app.repositories.user import UserRepository
 from app.repositories.workspace import WorkspaceRepository
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -70,7 +69,6 @@ class TestUserRepository:
 
     async def test_create_adds_commits_and_refreshes(self) -> None:
         session = make_session()
-        mock_user = MagicMock(spec=User)
         session.refresh.side_effect = lambda obj: None
         repo = UserRepository(session)
 
@@ -134,7 +132,10 @@ class TestSubscriptionRepository:
         session.refresh.side_effect = fake_refresh
 
         with pytest.MonkeyPatch.context() as mp:
-            mp.setattr("app.repositories.subscription.Subscription", lambda **kw: created_sub)
+            mp.setattr(
+                "app.repositories.subscription.Subscription",
+                lambda **kw: created_sub,
+            )
             result = await SubscriptionRepository(session).create(
                 workspace_id=workspace_id,
                 stripe_customer_id="cus_test",
@@ -147,7 +148,7 @@ class TestSubscriptionRepository:
     async def test_update_sets_provided_fields(self) -> None:
         session = make_session()
         sub = MagicMock(spec=Subscription)
-        period_end = datetime(2026, 12, 31, tzinfo=timezone.utc)
+        period_end = datetime(2026, 12, 31, tzinfo=UTC)
         repo = SubscriptionRepository(session)
 
         await repo.update(

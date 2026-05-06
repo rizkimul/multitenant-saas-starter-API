@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from app.models.workspace import Workspace
 
 
-class SubscriptionStatus(str, enum.Enum):
+class SubscriptionStatus(enum.StrEnum):
     """Mirrors Stripe subscription statuses."""
 
     incomplete = "incomplete"
@@ -32,7 +32,9 @@ class Subscription(Base):
     workspace_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("workspaces.id", ondelete="CASCADE"), unique=True, index=True
     )
-    stripe_customer_id: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    stripe_customer_id: Mapped[str] = mapped_column(
+        String(255), unique=True, index=True
+    )
     stripe_subscription_id: Mapped[str | None] = mapped_column(
         String(255), unique=True, nullable=True
     )

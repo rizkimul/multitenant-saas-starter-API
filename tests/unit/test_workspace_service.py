@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -25,7 +25,7 @@ def make_member(
     m.workspace_id = workspace_id
     m.user_id = user_id
     m.role = role
-    m.created_at = datetime.now(timezone.utc)
+    m.created_at = datetime.now(UTC)
     return m
 
 
@@ -38,7 +38,7 @@ def make_workspace(
     workspace.id = uuid.uuid4()
     workspace.name = "Test Workspace"
     workspace.slug = slug
-    workspace.created_at = datetime.now(timezone.utc)
+    workspace.created_at = datetime.now(UTC)
     workspace.members = [
         make_member(workspace.id, user_id, role)
         for user_id, role in roles.items()
@@ -57,7 +57,9 @@ def mock_user_repo() -> AsyncMock:
 
 
 @pytest.fixture
-def service(mock_workspace_repo: AsyncMock, mock_user_repo: AsyncMock) -> WorkspaceService:
+def service(
+    mock_workspace_repo: AsyncMock, mock_user_repo: AsyncMock
+) -> WorkspaceService:
     return WorkspaceService(
         workspace_repo=mock_workspace_repo,
         user_repo=mock_user_repo,
@@ -69,7 +71,9 @@ class TestCreateWorkspace:
         self, service: WorkspaceService, mock_workspace_repo: AsyncMock
     ) -> None:
         mock_workspace_repo.slug_exists.return_value = False
-        mock_workspace_repo.create.return_value = make_workspace({OWNER_ID: WorkspaceRole.owner})
+        mock_workspace_repo.create.return_value = make_workspace(
+            {OWNER_ID: WorkspaceRole.owner}
+        )
         mock_workspace_repo.add_member.return_value = MagicMock()
 
         await service.create_workspace(
@@ -84,7 +88,9 @@ class TestCreateWorkspace:
         self, service: WorkspaceService, mock_workspace_repo: AsyncMock
     ) -> None:
         mock_workspace_repo.slug_exists.return_value = False
-        mock_workspace_repo.create.return_value = make_workspace({OWNER_ID: WorkspaceRole.owner})
+        mock_workspace_repo.create.return_value = make_workspace(
+            {OWNER_ID: WorkspaceRole.owner}
+        )
         mock_workspace_repo.add_member.return_value = MagicMock()
 
         await service.create_workspace(
@@ -100,7 +106,9 @@ class TestCreateWorkspace:
     ) -> None:
         # base slug taken, "-2" also taken, "-3" is free
         mock_workspace_repo.slug_exists.side_effect = [True, True, False]
-        mock_workspace_repo.create.return_value = make_workspace({OWNER_ID: WorkspaceRole.owner})
+        mock_workspace_repo.create.return_value = make_workspace(
+            {OWNER_ID: WorkspaceRole.owner}
+        )
         mock_workspace_repo.add_member.return_value = MagicMock()
 
         await service.create_workspace(WorkspaceCreate(name="My Team"), OWNER_ID)
@@ -140,7 +148,9 @@ class TestGetWorkspace:
     async def test_success_for_member(
         self, service: WorkspaceService, mock_workspace_repo: AsyncMock
     ) -> None:
-        workspace = make_workspace({OWNER_ID: WorkspaceRole.owner, MEMBER_ID: WorkspaceRole.member})
+        workspace = make_workspace(
+            {OWNER_ID: WorkspaceRole.owner, MEMBER_ID: WorkspaceRole.member}
+        )
         mock_workspace_repo.get_with_members.return_value = workspace
 
         result = await service.get_workspace("test-workspace", MEMBER_ID)
@@ -345,7 +355,10 @@ class TestUpdateMemberRole:
         mock_workspace_repo.update_member_role.return_value = MagicMock()
 
         await service.update_member_role(
-            "test-workspace", MEMBER_ID, MemberRoleUpdate(role=WorkspaceRole.admin), OWNER_ID
+            "test-workspace",
+            MEMBER_ID,
+            MemberRoleUpdate(role=WorkspaceRole.admin),
+            OWNER_ID,
         )
 
         mock_workspace_repo.update_member_role.assert_called_once()
@@ -356,12 +369,19 @@ class TestUpdateMemberRole:
         mock_workspace_repo: AsyncMock,
     ) -> None:
         mock_workspace_repo.get_with_members.return_value = make_workspace(
-            {OWNER_ID: WorkspaceRole.owner, ADMIN_ID: WorkspaceRole.admin, MEMBER_ID: WorkspaceRole.member}
+            {
+                OWNER_ID: WorkspaceRole.owner,
+                ADMIN_ID: WorkspaceRole.admin,
+                MEMBER_ID: WorkspaceRole.member,
+            }
         )
 
         with pytest.raises(ForbiddenError, match="Owner role required"):
             await service.update_member_role(
-                "test-workspace", MEMBER_ID, MemberRoleUpdate(role=WorkspaceRole.admin), ADMIN_ID
+                "test-workspace",
+                MEMBER_ID,
+                MemberRoleUpdate(role=WorkspaceRole.admin),
+                ADMIN_ID,
             )
 
     async def test_cannot_demote_last_owner(
@@ -375,7 +395,10 @@ class TestUpdateMemberRole:
 
         with pytest.raises(ForbiddenError, match="last owner"):
             await service.update_member_role(
-                "test-workspace", OWNER_ID, MemberRoleUpdate(role=WorkspaceRole.admin), OWNER_ID
+                "test-workspace",
+                OWNER_ID,
+                MemberRoleUpdate(role=WorkspaceRole.admin),
+                OWNER_ID,
             )
 
     async def test_second_owner_can_be_demoted(

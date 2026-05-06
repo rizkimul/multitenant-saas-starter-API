@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import stripe
 
@@ -124,7 +124,7 @@ class SubscriptionService:
             status = SubscriptionStatus.incomplete
 
         period_end = datetime.fromtimestamp(
-            data["current_period_end"], tz=timezone.utc
+            data["current_period_end"], tz=UTC
         )
 
         await self.sub_repo.update(

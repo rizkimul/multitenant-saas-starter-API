@@ -36,7 +36,9 @@ def _get_workspace_service(session: SessionDep) -> WorkspaceService:
     )
 
 
-SubscriptionServiceDep = Annotated[SubscriptionService, Depends(_get_subscription_service)]
+SubscriptionServiceDep = Annotated[
+    SubscriptionService, Depends(_get_subscription_service)
+]
 WorkspaceServiceDep = Annotated[WorkspaceService, Depends(_get_workspace_service)]
 
 

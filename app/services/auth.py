@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -92,7 +92,7 @@ class AuthService:
         return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
     def _encode_token(self, payload: dict, expires_delta: timedelta) -> str:
-        payload["exp"] = datetime.now(timezone.utc) + expires_delta
+        payload["exp"] = datetime.now(UTC) + expires_delta
         return jwt.encode(
             payload,
             self._settings.secret_key,

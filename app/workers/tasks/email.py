@@ -4,7 +4,9 @@ from app.workers.celery_app import celery_app
 logger = get_logger(__name__)
 
 
-@celery_app.task(name="email.send_welcome", bind=True, max_retries=3, default_retry_delay=60)
+@celery_app.task(
+    name="email.send_welcome", bind=True, max_retries=3, default_retry_delay=60
+)
 def send_welcome_email(self, user_id: str, email: str, name: str) -> dict:
     """Send a welcome email to a newly registered user.
 

@@ -79,16 +79,26 @@ async def _build_report(workspace_id: uuid.UUID) -> dict:
             "members": {
                 "total": sum(role_counts.values()),
                 "by_role": {
-                    WorkspaceRole.owner.value: role_counts.get(WorkspaceRole.owner.value, 0),
-                    WorkspaceRole.admin.value: role_counts.get(WorkspaceRole.admin.value, 0),
-                    WorkspaceRole.member.value: role_counts.get(WorkspaceRole.member.value, 0),
+                    WorkspaceRole.owner.value: role_counts.get(
+                        WorkspaceRole.owner.value, 0
+                    ),
+                    WorkspaceRole.admin.value: role_counts.get(
+                        WorkspaceRole.admin.value, 0
+                    ),
+                    WorkspaceRole.member.value: role_counts.get(
+                        WorkspaceRole.member.value, 0
+                    ),
                 },
             },
             "subscription": {
-                "status": sub.status.value if sub else SubscriptionStatus.incomplete.value,
+                "status": (
+                    sub.status.value if sub else SubscriptionStatus.incomplete.value
+                ),
                 "stripe_customer_id": sub.stripe_customer_id if sub else None,
                 "current_period_end": (
-                    sub.current_period_end.isoformat() if sub and sub.current_period_end else None
+                    sub.current_period_end.isoformat()
+                    if sub and sub.current_period_end
+                    else None
                 ),
                 "cancel_at_period_end": sub.cancel_at_period_end if sub else False,
             },

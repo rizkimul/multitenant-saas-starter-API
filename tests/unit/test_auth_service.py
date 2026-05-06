@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import bcrypt
@@ -29,13 +29,13 @@ def make_mock_user(
     user.hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     user.is_active = is_active
     user.is_verified = False
-    user.created_at = datetime.now(timezone.utc)
+    user.created_at = datetime.now(UTC)
     return user
 
 
 def make_refresh_token(user_id: uuid.UUID, secret: str, expired: bool = False) -> str:
     """Create a real JWT refresh token for test inputs."""
-    exp = datetime.now(timezone.utc) + (
+    exp = datetime.now(UTC) + (
         timedelta(seconds=-1) if expired else timedelta(days=7)
     )
     return jwt.encode(
@@ -176,7 +176,7 @@ class TestRefresh:
             {
                 "sub": str(uuid.uuid4()),
                 "type": "access",
-                "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
+                "exp": datetime.now(UTC) + timedelta(minutes=15),
             },
             TEST_SECRET,
             algorithm="HS256",

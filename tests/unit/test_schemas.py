@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -36,7 +36,7 @@ class TestBillingSetupResponse:
     def test_from_attributes(self) -> None:
         workspace_id = uuid.uuid4()
         obj_id = uuid.uuid4()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         data = {
             "id": obj_id,
@@ -53,7 +53,7 @@ class TestBillingSetupResponse:
 
 class TestSubscriptionResponse:
     def test_full_response_from_attributes(self) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         data = {
             "id": uuid.uuid4(),
             "workspace_id": uuid.uuid4(),
@@ -72,7 +72,7 @@ class TestSubscriptionResponse:
         assert resp.cancel_at_period_end is False
 
     def test_nullable_fields_accept_none(self) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         data = {
             "id": uuid.uuid4(),
             "workspace_id": uuid.uuid4(),

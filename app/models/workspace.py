@@ -1,15 +1,18 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
 
+if TYPE_CHECKING:
+    from app.models.subscription import Subscription
 
-class WorkspaceRole(str, enum.Enum):
+
+class WorkspaceRole(enum.StrEnum):
     """Roles a user can hold within a workspace."""
 
     owner = "owner"

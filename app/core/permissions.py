@@ -71,10 +71,10 @@ def _require_role(*roles: WorkspaceRole):
     return guard
 
 
-WorkspaceMemberCtx = Annotated[
-    WorkspaceContext,
-    Depends(_require_role(WorkspaceRole.member, WorkspaceRole.admin, WorkspaceRole.owner)),
-]
+_member_roles = _require_role(
+    WorkspaceRole.member, WorkspaceRole.admin, WorkspaceRole.owner
+)
+WorkspaceMemberCtx = Annotated[WorkspaceContext, Depends(_member_roles)]
 
 WorkspaceAdminCtx = Annotated[
     WorkspaceContext,

@@ -190,7 +190,11 @@ class WorkspaceService:
         if not target_member:
             raise NotFoundError("Membership")
 
-        if target_member.role == WorkspaceRole.owner and data.role != WorkspaceRole.owner:
+        demoting_owner = (
+            target_member.role == WorkspaceRole.owner
+            and data.role != WorkspaceRole.owner
+        )
+        if demoting_owner:
             self._require_last_owner_check(workspace)
 
         return await self.workspace_repo.update_member_role(target_member, data.role)
