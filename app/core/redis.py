@@ -14,7 +14,7 @@ async def get_redis() -> AsyncGenerator[aioredis.Redis, None]:
         Redis: An async Redis client connected to the configured instance.
     """
     settings = get_settings()
-    client: aioredis.Redis = aioredis.from_url(
+    client: aioredis.Redis = aioredis.from_url(  # type: ignore[no-untyped-call]
         settings.redis_url, encoding="utf-8", decode_responses=True
     )
     try:

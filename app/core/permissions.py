@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,7 +55,7 @@ async def get_workspace_context(
     return WorkspaceContext(workspace=workspace, member=member, user=current_user)
 
 
-def _require_role(*roles: WorkspaceRole):
+def _require_role(*roles: WorkspaceRole) -> Callable[..., Any]:
     """Return a FastAPI dependency that enforces a minimum workspace role.
 
     Args:

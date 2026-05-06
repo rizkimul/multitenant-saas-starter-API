@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+from typing import Any
 
 from sqlalchemy import func, select
 
@@ -17,8 +18,8 @@ logger = get_logger(__name__)
     bind=True,
     max_retries=3,
     default_retry_delay=120,
-)
-def generate_workspace_report(self, workspace_id: str) -> dict:
+)  # type: ignore[untyped-decorator]
+def generate_workspace_report(self: Any, workspace_id: str) -> dict[str, Any]:
     """Generate a usage summary report for a workspace.
 
     Queries member counts by role, subscription status, and packages
@@ -42,7 +43,7 @@ def generate_workspace_report(self, workspace_id: str) -> dict:
         raise self.retry(exc=exc)
 
 
-async def _build_report(workspace_id: uuid.UUID) -> dict:
+async def _build_report(workspace_id: uuid.UUID) -> dict[str, Any]:
     """Fetch workspace data and assemble the report.
 
     Args:

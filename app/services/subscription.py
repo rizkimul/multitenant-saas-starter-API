@@ -1,5 +1,6 @@
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 import stripe
 
@@ -90,7 +91,7 @@ class SubscriptionService:
             AppError: If the signature is invalid or the event payload is malformed.
         """
         try:
-            event = stripe.Webhook.construct_event(
+            event = stripe.Webhook.construct_event(  # type: ignore[no-untyped-call]
                 payload, sig_header, self._settings.stripe_webhook_secret
             )
         except stripe.SignatureVerificationError:
@@ -106,7 +107,7 @@ class SubscriptionService:
         elif event_type == "customer.subscription.deleted":
             await self._cancel_subscription(data)
 
-    async def _sync_subscription(self, data: dict) -> None:
+    async def _sync_subscription(self, data: dict[str, Any]) -> None:
         """Update local subscription from a Stripe subscription object.
 
         Args:
@@ -136,7 +137,7 @@ class SubscriptionService:
             cancel_at_period_end=data.get("cancel_at_period_end", False),
         )
 
-    async def _cancel_subscription(self, data: dict) -> None:
+    async def _cancel_subscription(self, data: dict[str, Any]) -> None:
         """Mark a subscription as canceled when Stripe deletes it.
 
         Args:

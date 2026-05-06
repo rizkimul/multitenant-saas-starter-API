@@ -1,3 +1,5 @@
+from typing import Any
+
 from app.core.logging import get_logger
 from app.workers.celery_app import celery_app
 
@@ -6,8 +8,8 @@ logger = get_logger(__name__)
 
 @celery_app.task(
     name="email.send_welcome", bind=True, max_retries=3, default_retry_delay=60
-)
-def send_welcome_email(self, user_id: str, email: str, name: str) -> dict:
+)  # type: ignore[untyped-decorator]
+def send_welcome_email(self: Any, user_id: str, email: str, name: str) -> dict[str, Any]:
     """Send a welcome email to a newly registered user.
 
     Args:
@@ -45,10 +47,10 @@ def send_welcome_email(self, user_id: str, email: str, name: str) -> dict:
     bind=True,
     max_retries=3,
     default_retry_delay=60,
-)
+)  # type: ignore[untyped-decorator]
 def send_subscription_confirmed_email(
-    self, workspace_id: str, workspace_name: str, email: str
-) -> dict:
+    self: Any, workspace_id: str, workspace_name: str, email: str
+) -> dict[str, Any]:
     """Notify workspace owner that their subscription is now active.
 
     Args:

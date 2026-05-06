@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     # App
     debug: bool = False
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def database_url(self) -> str:
         """Assemble the async-compatible PostgreSQL connection URL."""
@@ -57,4 +57,4 @@ def get_settings() -> Settings:
     Returns:
         Settings: Validated settings loaded from environment / .env file.
     """
-    return Settings()
+    return Settings()  # type: ignore[call-arg]
