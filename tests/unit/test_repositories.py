@@ -29,6 +29,8 @@ def make_session(*, execute_result=None, get_result=None) -> AsyncMock:
     session = AsyncMock()
     session.execute.return_value = execute_result or make_execute_result()
     session.get.return_value = get_result
+    # session.add is sync in SQLAlchemy — override AsyncMock default
+    session.add = MagicMock()
     return session
 
 
